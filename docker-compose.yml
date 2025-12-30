@@ -1,0 +1,40 @@
+# ===========================================
+# AI CHATBOT - DOCKER COMPOSE
+# ===========================================
+
+version: '3.8'
+
+services:
+  chatbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-chatbot
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-gpt-4o-mini}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+    volumes:
+      # Persist data
+      - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+      - ./chat_sessions:/app/chat_sessions
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Optional: Add Redis for caching (future enhancement)
+# redis:
+#   image: redis:alpine
+#   container_name: chatbot-redis
+#   ports:
+#     - "6379:6379"
+#   restart: unless-stopped
